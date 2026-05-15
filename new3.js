@@ -1,150 +1,95 @@
-let dataFinger = [];
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyAo3Od-CZ95JTd2OfIfodRTLcgKZZ27QN4",
+  authDomain: "report-finger.firebaseapp.com",
+  projectId: "report-finger",
+  storageBucket: "report-finger.firebasestorage.app",
+  messagingSenderId: "779681129108",
+  appId: "1:779681129108:web:07b76737ac7ef741c8ca81"
+    measurementId: "G-2PNX4LZBXJ"
+};
 
-/* =========================
-   LOAD STORAGE
-========================= */
+firebase.initializeApp(firebaseConfig);
 
-const savedData = localStorage.getItem("dataFinger");
+const db = firebase.firestore();
 
-if(savedData){
 
-    dataFinger = JSON.parse(savedData);
+// IMPORT CSV
 
-}
+document.getElementById('csvFile').addEventListener('change', function(e) {
 
-/* =========================
-   IMPORT CSV
-========================= */
+  const file = e.target.files[0];
 
-document
-.getElementById("csvFile")
-.addEventListener("change", function(event){
+  const reader = new FileReader();
 
-    const file = event.target.files[0];
+  reader.onload = async function(event) {
 
-    if(!file) return;
+    const csv = event.target.result;
 
-    const reader = new FileReader();
+    const rows = csv.split('\n');
 
-    reader.onload = function(e){
+    for (let i = 1; i < rows.length; i++) {
 
-        const text = e.target.result;
+      const cols = rows[i].split(',');
 
-        const rows = text.split("\n");
+      if (cols.length >= 2) {
 
-        dataFinger = [];
+        const nama = cols[0].trim();
+        const dw = cols[1].trim();
 
-        const dwList = rows[0].split(",");
-        const namaList = rows[1].split(",");
-
-        for(let i = 2; i < rows.length; i += 3){
-
-            const shiftRow = rows[i].split(",");
-            const inRow = rows[i + 1].split(",");
-            const outRow = rows[i + 2].split(",");
-
-            const tanggal = shiftRow[0].trim();
-
-            for(let j = 2; j < dwList.length; j++){
-
-                const dw = dwList[j].trim();
-
-                const nama = namaList[j].trim();
-
-                const masuk = inRow[j].trim();
-
-                const keluar = outRow[j].trim();
-
-                dataFinger.push({
-
-                    nama,
-                    dw,
-                    tanggal,
-                    masuk,
-                    keluar
-
-                });
-
-            }
-
-        }
-
-        localStorage.setItem(
-            "dataFinger",
-            JSON.stringify(dataFinger)
-        );
-
-        alert("CSV berhasil disimpan");
-
-    };
-
-    reader.readAsText(file);
-
-});
-
-/* =========================
-   CARI REPORT
-========================= */
-
-function cariReport(){
-
-    const nama = document
-        .getElementById("nama")
-        .value
-        .trim()
-        .toLowerCase();
-
-    const dw = document
-        .getElementById("dw")
-        .value
-        .trim()
-        .toLowerCase();
-
-    const hasil = dataFinger.filter(item =>
-
-        item.nama.toLowerCase() === nama &&
-        item.dw.toLowerCase() === dw
-
-    );
-
-    let output = "";
-
-    if(hasil.length > 0){
-
-        output += `
-        <table>
-
-            <tr>
-                <th>Tanggal</th>
-                <th>Masuk</th>
-                <th>Keluar</th>
-            </tr>
-        `;
-
-        hasil.forEach(item => {
-
-            output += `
-            <tr>
-                <td>${item.tanggal}</td>
-                <td>${item.masuk}</td>
-                <td>${item.keluar}</td>
-            </tr>
-            `;
-
+        await db.collection('report').add({
+          nama: nama,
+          dw: dw
         });
 
-        output += `</table>`;
-
-    } else {
-
-        output = `
-        <p style="margin-top:20px;color:red;">
-            Data tidak ditemukan
-        </p>
-        `;
+      }
 
     }
 
-    document.getElementById("hasil").innerHTML = output;
+    alert('CSV berhasil diupload');
+
+  };
+
+  reader.readAsText(file);
+
+});
+
+
+// SEARCH REALTIME
+
+async function cariReport() {
+
+  const nama = document.getElementById('nama').value.toLowerCase();
+  const dw = document.getElementById('dw').value.toLowerCase();
+
+  const hasil = document.getElementById('hasil');
+
+  hasil.innerHTML = 'Loading...';
+
+  const snapshot = await db.collection('report').get();
+
+  let html = '';
+
+  snapshot.forEach(doc => {
+
+    const data = doc.data();
+
+    const cocokNama = data.nama.toLowerCase().includes(nama);
+    const cocokDw = data.dw.toLowerCase().includes(dw);
+
+    if (cocokNama && cocokDw) {
+
+      html += `
+        <div class="hasil-card">
+          <p><b>Nama:</b> ${data.nama}</p>
+          <p><b>DW:</b> ${data.dw}</p>
+        </div>
+      `;
+
+    }
+
+  });
+
+  hasil.innerHTML = html || 'Data tidak ditemukan';
 
 }

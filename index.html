@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Fingerprint</title>
+
+  <link rel="stylesheet" href="new2.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="card">
+
+    <h1>REPORT FINGERPRINT</h1>
+
+    <input type="file" id="csvFile" accept=".csv">
+
+    <div class="form-group">
+      <label>Nama</label>
+      <input type="text" id="nama">
+    </div>
+
+    <div class="form-group">
+      <label>DW</label>
+      <input type="text" id="dw">
+    </div>
+
+    <button onclick="cariReport()">
+      Cari Report
+    </button>
+
+    <div id="hasil"></div>
+
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="new3.js"></script>
+
+</body>
+</html>
